@@ -1,0 +1,23 @@
+数据库格式:
+users:
+{
+	"_id" : ObjectId("5c46e788b09137270418cf2e"),
+	"username" : "chen",
+	"password" : "d30b6a4d9e94cbb9db971c6283cfcd9e",
+	"nickname" : "chen",
+	"gender" : "2",
+	"avatar" : "baba.jpg",
+	"friend_list" : [
+		{
+		"friend_id" : "5c46e7a2b09137270418cf30",
+		"friend_name" : "二哈",
+		"friend_nick" : "太子",
+		"friend_avatar" : "toy.jpg",
+		"friend_type" : "toy",
+		"friend" : "5c46e7a2b09137270418cf2f"
+	}
+	],
+	"bind_toy" : [
+		"5c46e7a2b09137270418cf30"
+	]
+}

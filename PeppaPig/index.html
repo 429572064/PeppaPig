@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="UTF-8" />
+		<title>Document</title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link rel="stylesheet" type="text/css" href="css/mui.css" />
+	</head>
+
+	<body>
+		<nav class="mui-bar mui-bar-tab">
+			<a class="mui-tab-item mui-active">
+				<span class="mui-icon mui-icon-home" id='index'></span>
+				<span class="mui-tab-label">首页</span>
+			</a>
+			<a class="mui-tab-item" id='friend_list'>
+				<span class="mui-icon mui-icon-chat">
+					<span class='mui-badge mui-badge-red' id='count'>0</span>
+				</span>
+				<span class="mui-tab-label">好友消息</span>
+			</a>
+			<a class="mui-tab-item" id='req'>
+				<span class="mui-icon mui-icon-email"></span>
+				<span class="mui-tab-label">好友请求</span>
+			</a>
+			<a class="mui-tab-item" id='self'>
+				<span class="mui-icon mui-icon-gear" ></span>
+				<span class="mui-tab-label">个人中心</span>
+			</a>
+		</nav>
+
+	</body>
+	<script src="js/mui.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		mui.init({
+			subpages: [{
+				url: 'main.html',
+				id: 'main.html',
+				styles: {
+					top: '0px',
+					bottom: '50px'
+				}
+			}]
+		});
+		var ws = null;
+		if(window.localStorage.getItem('user')) {
+			ws = new WebSocket(window.serv_ws + window.localStorage.getItem('user'));
+			ws.onmessage = function(data){
+				console.log(data.data);
+				var msg = JSON.parse(data.data);
+				var chat = plus.webview.getWebviewById('chat.html');
+				mui.fire(chat,'add_chat',msg)
+				
+				mui.post(window.serv + '/chat_count',{
+					user_id:window.localStorage.getItem('user')
+					},function(data){
+						console.log(JSON.stringify(data.data));
+						recv_msg = data.data;
+						document.getElementById('count').innerText=data.data.count;
+					},'json'
+				);
+				
+				var friend_list = plus.webview.getWebviewById('friend_list.html');
+				mui.fire(friend_list,'refresh',{});
+				
+
+			}
+			
+			mui.post(window.serv + '/chat_count',{
+					user_id:window.localStorage.getItem('user')
+				},function(data){
+					console.log(JSON.stringify(data.data));
+					recv_msg = data.data;
+					document.getElementById('count').innerText=data.data.count;
+				},'json'
+			);
+		};
+		
+		document.addEventListener('send_music', function(data) {
+			var send_str = data.detail;
+			ws.send(JSON.stringify(send_str));
+		});
+		
+		document.addEventListener('send_str', function(data) {
+			var send_str = data.detail;
+			ws.send(JSON.stringify(send_str));
+		});
+		
+		document.addEventListener('new_ws', function(data) {
+			ws = new WebSocket(window.serv_ws + window.localStorage.getItem('user'));
+		});
+		
+		document.addEventListener('cut', function(data) {
+			var count = document.getElementById('count');
+			count.innerText = parseInt(count.innerText) - parseInt(data.detail.count);
+		});
+		
+		document.getElementById('self').addEventListener('tap', function() {
+			if(window.localStorage.getItem('user')) {
+				console.log(window.localStorage.getItem('user'))
+				mui.post(window.serv + '/auto_login', {
+					'_id': window.localStorage.getItem('user')
+				}, function(data) {
+					mui.openWindow({
+						url: 'userinfo.html',
+						id: 'userinfo.html',
+						styles: {
+							top: '0px',
+							bottom: '50px'
+						},
+						extras: data.data
+					})
+				}, 'json');
+			} else {
+				mui.openWindow({
+					url: "login.html",
+					id: "login.html",
+					styles: {
+						top: "0px",
+						bottom: "50px"
+					}
+
+				})
+			}
+		});
+		document.getElementById('index').addEventListener('tap', function() {
+			mui.openWindow({
+				url: 'main.html',
+				id: 'main.html',
+				styles: {
+					top: '0px',
+					bottom: '50px'
+				}
+			})
+		});
+		document.getElementById('friend_list').addEventListener('tap', function() {
+			mui.openWindow({
+				url: 'friend_list.html',
+				id: 'friend_list.html',
+				styles: {
+					top: '0px',
+					bottom: '50px'
+				},
+				extras:recv_msg,
+				createNew:true
+			})
+		})
+	</script>
+
+</html>

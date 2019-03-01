@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+3c4d97ac32ce8b0f5d9c6e29c8a6b122
+<p>DeviceKey:<input type="text" id="device_key">
+  <button onclick="open_toy()">开启玩具</button>
+</p>
+<audio autoplay controls id="player"></audio>
+<p>消息来自:<span id="from_user"></span></p>
+<p>
+    <button onclick="start_reco()" style="background-color:yellow">录制语音指令</button>
+    <button onclick="stop_reco_audio()" style="background-color:blue">发送语音指令</button>
+</p>
+<p>
+    <button onclick="reco_ai()" style="background-color: orange;">发送语音指令</button>
+</p>
+<p>
+    <button onclick="recv_msg()" style="background-color:cornflowerblue;">收取消息</button>
+</p>
+</body>
+
+<script type="application/javascript" src="/static/jQuery3.1.1.js"></script>
+<script type="application/javascript" src="/static/Recorder.js"></script>
+<script type="application/javascript">
+    var serv = 'http://{{ ip_addr }}:8000';
+    var serv_ws = 'ws://{{ ip_addr }}:8001/toy/';
+    var ws = null;
+    var toy_id = null;
+
+    //ws监听发来的消息
+  function open_toy() {
+    var device_key = document.getElementById("device_key").value;
+      console.log(device_key);
+    $.post( serv + '/device_login', {device_key: device_key}, function (data) {
+      console.log(data);
+      document.getElementById('player').src = serv + '/get_music/' + data.music
+      //alert(data.info);
+      toy_id= data.info;
+      ws = new WebSocket(serv_ws + toy_id);
+      ws.onmessage = function (data) {
+          console.log(data.data);
+        var msg = JSON.parse(data.data);
+        if (msg.music) {
+          document.getElementById("player").src =serv +  "/get_music/" + msg.music;
+        } else {
+          document.getElementById("player").src = serv + "/get_chat/" + msg.chat;
+          document.getElementById("from_user").innerText = msg.from_user;
+        }
+      }
+    }, "json")
+  }
+
+ var reco = null;
+  var audio_context = new AudioContext();
+  navigator.getUserMedia = (navigator.getUserMedia ||
+    navigator.webkitGetUserMedia ||
+    navigator.mozGetUserMedia ||
+    navigator.msGetUserMedia);
+
+  navigator.getUserMedia({audio: true}, create_stream, function (err) {
+    console.log(err)
+  });
+
+  function create_stream(user_media) {
+    var stream_input = audio_context.createMediaStreamSource(user_media);
+    reco = new Recorder(stream_input);
+  }
+
+  function start_reco() {
+    console.log(111)
+    reco.record();
+  }
+
+
+  function stop_reco_audio() {
+            console.log(222)
+    reco.stop();
+    console.log('stop')
+    send_audio();
+    reco.clear();
+  }
+
+  function reco_ai() {
+    console.log('ai')
+    reco.stop();
+    send_ai();
+    reco.clear();
+  }
+
+
+  function send_audio() {
+    reco.exportWAV(function (wav_file) {
+      var formdata = new FormData();
+      formdata.append("record", wav_file);
+      formdata.append("to_user",document.getElementById("from_user").innerText);
+      formdata.append("from_user",toy_id);
+      console.log(formdata);
+      $.ajax({
+        url: serv + "/toy_uploader",
+        type: 'post',
+        processData: false,
+        contentType: false,
+        data: formdata,
+        dataType: 'json',
+        success: function (data) {
+            console.log(data)
+          if(data.code == 0){
+            var send_str = {
+              "to_user":document.getElementById("from_user").innerText,
+              "from_user":toy_id,
+              "filename":data.filename
+            };
+            var send_json = JSON.stringify(send_str);
+            ws.send(send_json);
+            console.log('发送完毕')
+          }
+        }
+      });
+
+    })
+  };
+
+  function send_ai(){
+      reco.exportWAV(function (wav_file) {
+          var formdata = new FormData();
+          formdata.append('record',wav_file);
+          formdata.append('to_user',document.getElementById('from_user').innerText);
+          formdata.append('from_user',toy_id);
+          console.log('ai',formdata);
+          $.ajax({
+              url:serv + '/ai_uploader',
+              type:'post',
+              processData:false,
+              contentType:false,
+              data:formdata,
+              dataType:'json',
+              success:function(data){
+                  console.log(data);
+                  document.getElementById('from_user').innerText = data.from_user;
+                  if (data.chat){
+                      document.getElementById('player').src = serv + '/get_chat/'+ data.chat;
+                  }else{
+                      document.getElementById('player').src = serv + '/get_music/'+data.music;
+                  }
+              }
+
+          })
+      })
+  }
+
+  function recv_msg(){
+      $.post(serv + '/recv_msg',{
+          to_user:toy_id,
+          from_user:document.getElementById('from_user').innerText
+      },function(data){
+          var player = document.getElementById('player');
+          console.log(data,typeof(data));
+          player.src = serv + '/get_chat/' + data.shift().msg;
+          console.log(data.shift().msg);
+          player.onended = function(){
+              if (data.length == 0){
+                  return
+              }
+              play.src = serv + '/get_chat/' + data.shift().msg;
+          }
+      },'json')
+  }
+</script>
+</html>

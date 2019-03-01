@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="UTF-8" />
+		<title>Document</title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link rel="stylesheet" type="text/css" href="css/mui.css" />
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 class="mui-title">绑定玩具</h1>
+		</header>
+		<div class="mui-content">
+			<form class="mui-input-group">
+				<div class="mui-input-row">
+					<label>玩具名称</label>
+					<input type="text" class="mui-input-clear" placeholder="请给玩具取个名字" id='toy_name'>
+				</div>
+				<div class="mui-input-row">
+					<label>宝宝名称</label>
+					<input type="text" class="mui-input-clear" placeholder="请输入玩具小主人的名字" id='baby_name'>
+				</div>
+				<div class="mui-input-row">
+					<label>对您的称呼</label>
+					<input type="text" class="mui-input-clear" placeholder="小主人对您的称呼" id='remark'>
+				</div>
+				<div class="mui-button-row">
+					<button type="button" class="mui-btn mui-btn-primary" id='bind_btn'>绑定</button>
+					<button type="button" class="mui-btn mui-btn-danger">取消</button>
+				</div>
+			</form>
+		</div>
+
+	</body>
+	<script src="js/mui.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		mui.init();
+		var Sdata = null;
+		mui.plusReady(function () {
+		    Sdata = plus.webview.currentWebview();
+		})
+		document.getElementById('bind_btn').addEventListener('tap',function () {
+	        mui.post(window.serv + '/bind_toy',{
+	        		device_key:Sdata.device_key,
+	        		toy_name:document.getElementById('toy_name').value,
+	        		baby_name:document.getElementById('baby_name').value,
+	        		remark:document.getElementById('remark').value,
+	        		user_id:window.localStorage.getItem('user'),
+	        	},function(data){
+	        		if (data.code == 0){
+	        			mui.openWindow({
+	        				url:'toy_manager.html',
+	        				id:'toy_manager.html',
+	        				createNew:true
+	        			})
+	        		}
+	        	},'json'
+	        );
+		})
+	</script>
+
+</html>

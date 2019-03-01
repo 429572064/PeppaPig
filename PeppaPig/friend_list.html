@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="UTF-8" />
+		<title>Document</title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link rel="stylesheet" type="text/css" href="css/mui.css" />
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<h1 class="mui-title">好友消息列表</h1>
+		</header>
+		<div class="mui-content">
+			<ul class="mui-table-view" id="friend_list">
+
+			</ul>
+		</div>
+
+	</body>
+	<script src="js/mui.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		mui.init();
+		var Sdata = null;
+		mui.plusReady(function() {
+			Sdata = plus.webview.currentWebview();
+			
+			mui.post(window.serv + '/friend_list', {
+				user_id: window.localStorage.getItem('user')
+			}, function(data) {
+				console.log(JSON.stringify(data))
+				for(var i = 0; i < data.data.length; i++) {
+					create_item(data.data[i])
+				}
+			}, 'json');
+		});
+
+		document.addEventListener('refresh',function(){
+			window.location.reload();
+		})
+
+		function create_item(content) {
+			var li = document.createElement("li");
+			li.className = 'mui-table-view-cell mui-media';
+			var a = document.createElement('a');
+			var span = document.createElement('span');
+			span.className = 'mui-badge mui-badge-red';
+			console.log(JSON.stringify(Sdata))
+			span.innerText = Sdata[content.friend_id]
+			a.onclick = function(){
+				var index = plus.webview.getWebviewById('HBuilder');
+				mui.fire(index,'cut',{count:span.innerText});
+				span.innerText = 0;
+				
+				mui.openWindow({
+					url:"chat.html",
+					id:'chat.html',
+					extras:content
+				})
+			}
+			var img = document.createElement('img');
+			img.className = 'mui-media-object mui-pull-left';
+			img.src = 'avatar/'+ content.friend_avatar;
+			var div = document.createElement('div');
+			div.innerText = content.friend_nick;
+			var p = document.createElement('p');
+			p.innerText = content.friend_name;
+
+			li.appendChild(a);
+			a.appendChild(img);
+			a.appendChild(div);
+			a.appendChild(span);
+			div.appendChild(p);
+
+			document.getElementById('friend_list').appendChild(li);
+		}
+	</script>
+
+</html>

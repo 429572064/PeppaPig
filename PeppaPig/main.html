@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Document</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="stylesheet" type="text/css" href="css/mui.css"/>
+</head>
+<body>
+    <header class="mui-bar mui-bar-nav">
+        <a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+        <h1 class="mui-title">首页</h1>
+    </header>
+    <div class="mui-content">
+        
+  
+	   	<div id="slider" class="mui-slider" >
+	   	  <div class="mui-slider-group mui-slider-loop">
+	   	    <!-- 额外增加的一个节点(循环轮播：第一个节点是最后一张轮播) -->
+	   	    <div class="mui-slider-item mui-slider-item-duplicate">
+	   	      <a href="#">
+	   	        <img src="http://placehold.it/400x300">
+	   	      </a>
+	   	    </div>
+	   	    <!-- 第一张 -->
+	   	    <div class="mui-slider-item">
+	   	      <a href="#">
+	   	        <img src="http://placehold.it/400x300">
+	   	      </a>
+	   	    </div>
+	   	    <!-- 第二张 -->
+	   	    <div class="mui-slider-item">
+	   	      <a href="#">
+	   	        <img src="http://placehold.it/400x300">
+	   	      </a>
+	   	    </div>
+	   	    <!-- 第三张 -->
+	   	    <div class="mui-slider-item">
+	   	      <a href="#">
+	   	        <img src="http://placehold.it/400x300">
+	   	      </a>
+	   	    </div>
+	   	    <!-- 第四张 -->
+	   	    <div class="mui-slider-item">
+	   	      <a href="#">
+	   	        <img src="http://placehold.it/400x300">
+	   	      </a>
+	   	    </div>
+	   	    <!-- 额外增加的一个节点(循环轮播：最后一个节点是第一张轮播) -->
+	   	    <div class="mui-slider-item mui-slider-item-duplicate">
+	   	      <a href="#">
+	   	        <img src="http://placehold.it/400x300">
+	   	      </a>
+	   	    </div>
+	   	  </div>
+	   	  <div class="mui-slider-indicator">
+	   	    <div class="mui-indicator mui-active"></div>
+	   	    <div class="mui-indicator"></div>
+	   	    <div class="mui-indicator"></div>
+	   	    <div class="mui-indicator"></div>
+	   	  </div>
+	   	</div>
+	   	<ul class="mui-table-view mui-grid-view mui-grid-9">
+	   	<li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-4">
+	   	    <a href="#">
+	   	        <span class="mui-icon mui-icon-home"></span>
+	   	        <div class="mui-media-body">儿歌</div>
+	   	    </a>
+	   	</li>
+	   	<li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-4">
+	   	    <a href="#">
+	   	        <span class="mui-icon mui-icon-email"><span class="mui-badge mui-badge-red">5</span></span>
+	   	        <div class="mui-media-body">故事</div>
+	   	    </a>
+	   	</li>
+	   	<li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-4">
+	   	    <a href="#">
+	   	        <span class="mui-icon mui-icon-chatbubble"></span>
+	   	        <div class="mui-media-body">古诗</div>
+	   	    </a>
+	   	</li>
+	   	<li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-4">
+	   	    <a href="#">
+	   	        <span class="mui-icon mui-icon-location"></span>
+	   	        <div class="mui-media-body">自然</div>
+	   	    </a>
+	   	</li>
+	   	<li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-4">
+	   	    <a href="#">
+	   	        <span class="mui-icon mui-icon-search"></span>
+	   	        <div class="mui-media-body">国学</div>
+	   	    </a>
+	   	</li>
+	   	<li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-4">
+	   	    <a href="#">
+	   	        <span class="mui-icon mui-icon-phone"></span>
+	   	        <div class="mui-media-body">百科</div>
+	   	    </a>
+	   	</li>
+	   	    </ul>
+   	    <ul class="mui-table-view" id="content_list">
+            
+        </ul>
+
+   	  </div>
+    <script src="js/mui.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript">
+    mui.init()
+    
+    mui.plusReady(function(){
+    	console.log(123)
+    	mui.post(window.serv + '/content_list',{
+    			
+    		},function(data){
+    			console.log(JSON.stringify(data))
+    			for(var i = 0; i < data.data.length; i++){
+    				create_item(data.data[i]);
+    			}
+    		},'json'
+    	);
+    })
+    
+    function create_item(content){
+	    var li = document.createElement("li");
+	    li.className = 'mui-table-view-cell mui-media';
+	    var a = document.createElement('a');
+	    a.onclick = function(){
+	    	mui.openWindow({
+	    		url:'player.html',
+	    		id:'player.html',
+	    		extras:content
+	    	})
+	    }
+	    var img = document.createElement('img');
+	    img.className = 'mui-media-object mui-pull-left';
+	    img.src = window.serv_image + content.cover;
+	    var div = document.createElement('div');
+	    div.innerText = content.title;
+	    var p = document.createElement('p');
+	    p.innerText = content.intro;
+	    
+	    li.appendChild(a);
+	    a.appendChild(img);
+	    a.appendChild(div);
+	    div.appendChild(p);
+	    
+	    document.getElementById('content_list').appendChild(li);
+    }
+    </script>
+</body>
+</html>
+

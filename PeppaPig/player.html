@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Document</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="stylesheet" type="text/css" href="css/mui.css"/>
+</head>
+<body>
+    <header class="mui-bar mui-bar-nav">
+        <a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+        <h1 class="mui-title" id='title'>正在播放xxxx</h1>
+    </header>
+    <div class="mui-content">
+        <div class='mui_row' style='text-align:center; margin-top:10px;'>
+        	<img src="" id='cover' style='height:250px; width:250px; border-radius:50%;' />
+        </div>
+        <button type="button" id='pause' class='mui-btn mui-btn-yellow mui-btn-block'>暂停</button>
+    	<button type="button" id='resume' class='mui-btn mui-btn-green mui-btn-block'>继续</button>
+    	<button type="button" id='stop' class='mui-btn mui-btn-red mui-btn-block'>停止</button>
+    <!--	<button type="button" id='send' class='mui-btn mui-btn-blue mui-btn-block'>发送给玩具</button>-->
+    	<style type='text/css'>
+    		#popover {
+    			height:150px;
+    			width:250px;
+    		}
+    	</style>
+    	<div id="popover" class="mui-popover">
+    		<div class="mui-scroll-wrapper">
+    		    <div class="mui-scroll">
+    			    <ul class="mui-table-view" id='toy_list'>
+    			    	
+    			    </ul>
+    			</div>
+    		</div>
+    	</div>
+    	<a href="#popover" id="openPopover" class="mui-btn mui-btn-primary mui-btn-block">打开弹出菜单</a>
+    </div>
+    <script src="js/mui.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript">
+    mui.init();
+    var Sdata = null;
+    var myplayer = null;
+    mui('.mui-scroll-wrapper').scroll();
+    mui.plusReady(function(){
+    	Sdata = plus.webview.currentWebview();
+    	mui.post(window.serv + '/toy_list',{
+    			'_id':window.localStorage.getItem('user')
+    	},function(data){
+    			for (var i = 0; i < data.data.length; i++) {
+    				create_toy(data.data[i])
+    			}
+    		},'json'
+    	);
+    	document.getElementById('title').innerText='正在播放'+Sdata.title;
+    	document.getElementById('cover').src=window.serv_image + Sdata.cover;
+    	myplayer = plus.audio.createPlayer(window.serv_music + Sdata.audio);
+    	myplayer.play();	
+    });
+    
+    function create_toy(toy){
+    	console.log(JSON.stringify(toy));
+    	var li = document.createElement("li");
+    	li.className = 'mui-table-view-cell';
+    	var a = document.createElement("a");
+    	a.innerText = toy.toy_name;
+    	a.onclick = function(){
+    		var index = plus.webview.getWebviewById('HBuilder');
+    		mui.fire(index,'send_music',{
+    			to_user:toy._id,
+    			from_user:window.localStorage.getItem('user'),
+    			music:Sdata.audio
+    		})
+    	}
+    	
+    	li.appendChild(a);
+    	document.getElementById('toy_list').appendChild(li);
+    }
+    
+   	document.getElementById('pause').addEventListener('tap',function(){
+   		myplayer.pause();
+   	});
+   	document.getElementById('resume').addEventListener('tap',function(){
+   		myplayer.resume();
+   	});
+   	document.getElementById('stop').addEventListener('tap',function(){
+   		myplayer.stop();
+   	});  
+// 	document.getElementById('send').addEventListener('tap',function(){
+// 		var index = plus.webview.getWebviewById('Hbuilder');
+// 		mui.fire(index,'send_music',{to_user:'toy123',
+// 			music:Sdata.audio});
+// 	});
+    </script>
+</body>
+</html>
